@@ -1,0 +1,65 @@
+/* Creazione schema */
+
+//Crea documento Bank Account con due proprietà
+WOQL.doctype("BankAccount").label("Bank Account")
+    .property("owner","xsd:string")
+       .label("owner")
+       .cardinality(1)
+    .property("balance","xsd:nonNegativeInteger")
+       .label("balance")
+       .cardinality(1)
+
+       
+/* Aggiunta dati */
+
+WOQL.and(
+  WOQL.add_triple("doc:mike", "type", "scm:BankAccount"),
+  WOQL.add_triple("doc:mike", "owner", "mike"),
+  WOQL.add_triple("doc:mike", "balance", 123)
+)
+
+
+/* Modifica proprietà */
+
+//dichiarazione variabili balance e new_balance 
+vars = function(sl) {return sl.map( s => "v:" + s)}
+let [balance,new_balance] = vars(["Balance", "New Balance"])
+
+//query
+WOQL.and(
+  WOQL.triple("doc:mike", "scm:balance", balance),
+  WOQL.delete_triple("doc:mike", "scm:balance", balance),
+  WOQL.eval(WOQL.minus(balance, 13), new_balance),
+  WOQL.add_triple("doc:mike", "scm:balance", new_balance)
+)
+
+/* Equivalente a: */
+let balance = "v:Balance";
+let new_balance = "v:New balance";
+
+//query
+WOQL.and(
+  WOQL.triple("doc:mike", "scm:balance", balance),
+  WOQL.delete_triple("doc:mike", "scm:balance", balance),
+  WOQL.eval(WOQL.minus(balance, 13), new_balance),
+  WOQL.add_triple("doc:mike", "scm:balance", new_balance)
+)
+
+
+/* Creazione nuovo branch */
+
+/* Creazione nuova tripla */
+WOQL.and(
+  WOQL.add_triple("doc:jim", "type", "scm:BankAccount"),
+  WOQL.add_triple("doc:jim", "owner", "jim"),
+  WOQL.add_triple("doc:jim", "balance", 8)
+  )
+
+
+/* Select */
+WOQL.select("v:Owner", "v:Balance").and( //variabili in output
+	WOQL.triple("v:BankAccount", "type", "scm:BankAccount"),
+	WOQL.triple("v:BankAccount", "owner", "v:Owner"),
+  WOQL.triple("v:BankAccount", "owner", "mike"),
+	WOQL.triple("v:BankAccount", "balance", "v:Balance")
+)
